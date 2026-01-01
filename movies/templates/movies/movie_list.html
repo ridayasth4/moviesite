@@ -1,0 +1,25 @@
+{% extends 'movies/base.html' %}
+
+{% block title %}Movies | MovieSite{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">All Movies</h2>
+<div class="row">
+    {% for movie in movies %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            {% if movie.poster %}
+            <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ movie.title }}</h5>
+                <p class="card-text">{{ movie.genre }}</p>
+                <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-dark">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No movies found.</p>
+    {% endfor %}
+</div>
+{% endblock %}
