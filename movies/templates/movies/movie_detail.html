@@ -3,18 +3,71 @@
 {% block title %}{{ movie.title }} | MovieSite{% endblock %}
 
 {% block content %}
-<div class="row">
+
+<div class="row my-4">
     <div class="col-md-4">
         {% if movie.poster %}
-        <img src="{{ movie.poster.url }}" class="img-fluid rounded shadow" alt="{{ movie.title }}">
+        <img src="{{ movie.poster.url }}" class="img-fluid rounded shadow">
         {% endif %}
     </div>
+
     <div class="col-md-8">
         <h2>{{ movie.title }}</h2>
-        <p><strong>Genre:</strong> {{ movie.genre }}</p>
-        <p><strong>Release Date:</strong> {{ movie.release_date }}</p>
-        <p>{{ movie.description }}</p>
-        <a href="{% url 'movie_list' %}" class="btn btn-secondary mt-3">Back to Movies</a>
+        <p class="text-muted">{{ movie.genre }} | Released: {{ movie.release_date }}</p>
+
+        <p>{{ movie.description|default:"No description available." }}</p>
+
+        {% if user.is_authenticated %}
+<h4 class="mt-4">Leave a Review</h4>
+<form method="post" action="{% url 'add_review' movie.id %}">
+    {% csrf_token %}
+    <div class="mb-2">
+        <label for="rating" class="form-label">Rating (1–5)</label>
+        <input type="number" name="rating" id="rating" class="form-control" min="1" max="5" required>
+    </div>
+    <div class="mb-2">
+        <label for="comment" class="form-label">Comment</label>
+        <textarea name="comment" id="comment" class="form-control" rows="3" required></textarea>
+    </div>
+    <button class="btn btn-primary">Submit Review</button>
+</form>
+
+<h4 class="mt-4">Reviews {% if avg_rating %} - Average Rating: {{ avg_rating|floatformat:1 }}/5{% endif %}</h4>
+
+{% for review in reviews %}
+<div class="card mb-2">
+    <div class="card-body">
+        <strong>{{ review.user.username }}</strong> 
+        - <span>{{ review.rating }}/5</span>
+        <p>{{ review.comment }}</p>
+        <small class="text-muted">{{ review.created_at|date:"M d, Y H:i" }}</small>
     </div>
 </div>
+{% empty %}
+<p>No reviews yet.</p>
+{% endfor %}
+
+{% else %}
+<p><a href="{% url 'login' %}">Login</a> to leave a review.</p>
+{% endif %}
+
+
+        <!-- Favorite Button -->
+        {% if user.is_authenticated %}
+        <form action="{% url 'toggle_favorite' movie.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            {% if movie.id in user_fav_ids %}
+            <button class="btn btn-danger">❤️ Remove from Favorites</button>
+            {% else %}
+            <button class="btn btn-outline-danger">🤍 Add to Favorites</button>
+            {% endif %}
+        </form>
+        {% else %}
+        <a href="{% url 'login' %}" class="btn btn-outline-danger">Login to Favorite</a>
+        {% endif %}
+
+        <a href="{% url 'movie_list' %}" class="btn btn-secondary ms-2">Back to Movies</a>
+    </div>
+</div>
+
 {% endblock %}

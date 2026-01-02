@@ -9,4 +9,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('movies/', views.movie_list, name='movie_list'),
     path('movies/<int:pk>/', views.movie_detail, name='movie_detail'),
+    path('movies/<int:movie_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
+    path('movies/<int:movie_id>/review/', views.add_review, name='add_review'),
+
 ]

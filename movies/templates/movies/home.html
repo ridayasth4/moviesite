@@ -3,6 +3,41 @@
 {% block title %}Home | MovieSite{% endblock %}
 
 {% block content %}
-<h1>Welcome to MovieSite 🎬</h1>
-<p>Your movie website is ready.</p>
+
+<!-- ================= HERO / Featured Movies ================= -->
+<h2 class="mb-4">Featured Movies</h2>
+
+<div class="row">
+    {% for movie in movies %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            {% if movie.poster %}
+            <img src="{{ movie.poster.url }}" class="card-img-top">
+            {% endif %}
+            <div class="card-body text-center">
+                <h5>{{ movie.title }}</h5>
+                <p class="text-muted">{{ movie.genre }}</p>
+
+                {% if user.is_authenticated %}
+                <form action="{% url 'toggle_favorite' movie.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    {% if movie.id in user_fav_ids %}
+                    <button class="btn btn-danger btn-sm">❤️ Remove</button>
+                    {% else %}
+                    <button class="btn btn-outline-danger btn-sm">🤍 Add to Favorites</button>
+                    {% endif %}
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}" class="btn btn-outline-danger btn-sm">Login to Favorite</a>
+                {% endif %}
+
+                <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-dark btn-sm mt-2">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+        <p class="text-center">No featured movies found.</p>
+    {% endfor %}
+</div>
+
 {% endblock %}
