@@ -4,29 +4,40 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Movie, Favorite, Review
-from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Avg
 
-
 # ---------------- Home ----------------
 def home(request):
-    featured_movies = Movie.objects.filter(featured=True)
+    """Featured carousel + other movies grid."""
+    featured_movies = Movie.objects.filter(featured=True)\
+                                   .order_by('-created_at')[:6]
 
     if not featured_movies.exists():
-        featured_movies = Movie.objects.all().order_by('-created_at')[:6]
+        featured_movies = Movie.objects.order_by('-created_at')[:6]
 
-    # Add user's favorites
-    if request.user.is_authenticated:
-        user_fav_ids = request.user.favorites.values_list('movie_id', flat=True)
-    else:
-        user_fav_ids = []
+    other_movies = Movie.objects.exclude(
+        id__in=[m.id for m in featured_movies]
+    ).order_by('-created_at')
 
-    context = {
+    user_fav_ids = set(request.user.favorites.values_list('movie_id', flat=True)) if request.user.is_authenticated else set()
+
+    # Compute stars and avg_rating_value for template
+    for movie in list(featured_movies) + list(other_movies):
+        avg = movie.avg_rating  # read-only property
+        movie.avg_rating_value = avg
+        movie.stars_list = [
+            'full' if i <= avg else
+            'half' if i - avg < 1 else
+            'empty'
+            for i in range(1, 6)
+        ]
+
+    return render(request, 'movies/home.html', {
         'movies': featured_movies,
+        'other_movies': other_movies,
         'user_fav_ids': user_fav_ids,
-    }
-    return render(request, 'movies/home.html', context)
+    })
 
 
 # ---------------- Login ----------------
@@ -34,20 +45,19 @@ def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
             return redirect('home')
-        else:
-            messages.error(request, "Invalid username or password")
-
+        messages.error(request, "Invalid username or password")
     return render(request, 'movies/login.html')
+
 
 # ---------------- Logout ----------------
 def logout_view(request):
     logout(request)
     return redirect('home')
+
 
 # ---------------- Register ----------------
 def register_view(request):
@@ -64,92 +74,105 @@ def register_view(request):
         elif User.objects.filter(email=email).exists():
             messages.error(request, "Email already taken")
         else:
-            user = User.objects.create_user(username=username, email=email, password=password)
-            user.save()
+            User.objects.create_user(username=username, email=email, password=password)
             messages.success(request, "Account created successfully! Please log in.")
             return redirect('login')
 
     return render(request, 'movies/register.html')
 
-# Movie List
+
+# ---------------- Movie List ----------------
 def movie_list(request):
     movies = Movie.objects.all().order_by('-release_date')
 
-    search_query = request.GET.get('q')
-    genre_filter = request.GET.get('genre')
+    if q := request.GET.get('q'):
+        movies = movies.filter(title__icontains=q)
+    if genre := request.GET.get('genre'):
+        movies = movies.filter(genre__iexact=genre)
 
-    if search_query:
-        movies = movies.filter(title__icontains=search_query)
-
-    if genre_filter:
-        movies = movies.filter(genre__iexact=genre_filter)
-
-    paginator = Paginator(movies, 6)  # 6 movies per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    paginator = Paginator(movies, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     genres = Movie.objects.values_list('genre', flat=True).distinct()
+    user_fav_ids = set(request.user.favorites.values_list('movie_id', flat=True)) if request.user.is_authenticated else set()
 
-    # ✅ Add user's favorites (IDs only)
-    if request.user.is_authenticated:
-        user_fav_ids = request.user.favorites.values_list('movie_id', flat=True)
-    else:
-        user_fav_ids = []
+    # Compute stars and avg_rating_value only for current page
+    for movie in page_obj:
+        avg = movie.avg_rating
+        movie.avg_rating_value = avg
+        movie.stars_list = [
+            'full' if i <= avg else
+            'half' if i - avg < 1 else
+            'empty'
+            for i in range(1, 6)
+        ]
 
-    context = {
+    return render(request, 'movies/movie_list.html', {
         'page_obj': page_obj,
         'genres': genres,
         'user_fav_ids': user_fav_ids,
-    }
+        'request': request,
+    })
 
-    return render(request, 'movies/movie_list.html', context)
 
-# Movie Detail
+# ---------------- Movie Detail ----------------
 def movie_detail(request, pk):
     movie = get_object_or_404(Movie, pk=pk)
-
-    #favourites
-    if request.user.is_authenticated:
-        user_fav_ids = request.user.favorites.values_list('movie_id', flat=True)
-    else:
-        user_fav_ids = []
-
-    # Reviews
+    user_fav_ids = set(request.user.favorites.values_list('movie_id', flat=True)) if request.user.is_authenticated else set()
     reviews = movie.reviews.all()
-    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
 
-    context = {
+    return render(request, 'movies/movie_detail.html', {
         'movie': movie,
         'user_fav_ids': user_fav_ids,
         'reviews': reviews,
-        'avg_rating': avg_rating,
-    }
+        'avg_rating_value': movie.avg_rating,
+        'stars_display': movie.stars_display,
+        'review_stars_range': range(1, 6),
+    })
 
-    return render(request, 'movies/movie_detail.html', context)
 
-
+# ---------------- Toggle Favorite ----------------
 @login_required
 def toggle_favorite(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     favorite, created = Favorite.objects.get_or_create(user=request.user, movie=movie)
-
     if not created:
-        # Already exists → remove it
         favorite.delete()
-
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
+
+# ---------------- Add Review ----------------
+@login_required
 def add_review(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
-
     if request.method == 'POST':
         rating = int(request.POST.get('rating'))
         comment = request.POST.get('comment')
-
-        review, created = Review.objects.update_or_create(
+        Review.objects.update_or_create(
             movie=movie,
             user=request.user,
             defaults={'rating': rating, 'comment': comment}
         )
-
     return redirect('movie_detail', pk=movie.id)
+
+
+# ---------------- Favorites List ----------------
+@login_required
+def favorites_list(request):
+    fav_movies = Movie.objects.filter(favorited_by__user=request.user).order_by('-created_at')
+    user_fav_ids = set(movie.id for movie in fav_movies)
+
+    for movie in fav_movies:
+        avg = movie.avg_rating
+        movie.avg_rating_value = avg
+        movie.stars_list = [
+            'full' if i <= avg else
+            'half' if i - avg < 1 else
+            'empty'
+            for i in range(1, 6)
+        ]
+
+    return render(request, 'movies/favorites.html', {
+        'fav_movies': fav_movies,
+        'user_fav_ids': user_fav_ids,
+    })

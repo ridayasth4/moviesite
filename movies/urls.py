@@ -11,5 +11,6 @@ urlpatterns = [
     path('movies/<int:pk>/', views.movie_detail, name='movie_detail'),
     path('movies/<int:movie_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('movies/<int:movie_id>/review/', views.add_review, name='add_review'),
-
+    path('toggle-favorite/<int:movie_id>/', views.toggle_favorite, name='toggle_favorite'),
+    path('favorites/', views.favorites_list, name='favorites')
 ]

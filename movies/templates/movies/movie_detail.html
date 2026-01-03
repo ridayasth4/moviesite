@@ -5,68 +5,97 @@
 {% block content %}
 
 <div class="row my-4">
+    <!-- Movie Poster -->
     <div class="col-md-4">
         {% if movie.poster %}
-        <img src="{{ movie.poster.url }}" class="img-fluid rounded shadow">
+            <img src="{{ movie.poster.url }}" class="img-fluid rounded shadow">
         {% endif %}
     </div>
 
+    <!-- Movie Details -->
     <div class="col-md-8">
         <h2>{{ movie.title }}</h2>
         <p class="text-muted">{{ movie.genre }} | Released: {{ movie.release_date }}</p>
-
         <p>{{ movie.description|default:"No description available." }}</p>
-
-        {% if user.is_authenticated %}
-<h4 class="mt-4">Leave a Review</h4>
-<form method="post" action="{% url 'add_review' movie.id %}">
-    {% csrf_token %}
-    <div class="mb-2">
-        <label for="rating" class="form-label">Rating (1–5)</label>
-        <input type="number" name="rating" id="rating" class="form-control" min="1" max="5" required>
-    </div>
-    <div class="mb-2">
-        <label for="comment" class="form-label">Comment</label>
-        <textarea name="comment" id="comment" class="form-control" rows="3" required></textarea>
-    </div>
-    <button class="btn btn-primary">Submit Review</button>
-</form>
-
-<h4 class="mt-4">Reviews {% if avg_rating %} - Average Rating: {{ avg_rating|floatformat:1 }}/5{% endif %}</h4>
-
-{% for review in reviews %}
-<div class="card mb-2">
-    <div class="card-body">
-        <strong>{{ review.user.username }}</strong> 
-        - <span>{{ review.rating }}/5</span>
-        <p>{{ review.comment }}</p>
-        <small class="text-muted">{{ review.created_at|date:"M d, Y H:i" }}</small>
-    </div>
-</div>
-{% empty %}
-<p>No reviews yet.</p>
-{% endfor %}
-
-{% else %}
-<p><a href="{% url 'login' %}">Login</a> to leave a review.</p>
-{% endif %}
-
 
         <!-- Favorite Button -->
         {% if user.is_authenticated %}
-        <form action="{% url 'toggle_favorite' movie.id %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            {% if movie.id in user_fav_ids %}
-            <button class="btn btn-danger">❤️ Remove from Favorites</button>
-            {% else %}
-            <button class="btn btn-outline-danger">🤍 Add to Favorites</button>
-            {% endif %}
-        </form>
+            <form action="{% url 'toggle_favorite' movie.id %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                {% if movie.id in user_fav_ids %}
+                    <button class="btn btn-danger">❤️ Remove from Favorites</button>
+                {% else %}
+                    <button class="btn btn-outline-danger">Add to Favorites</button>
+                {% endif %}
+            </form>
         {% else %}
-        <a href="{% url 'login' %}" class="btn btn-outline-danger">Login to Favorite</a>
+            <a href="{% url 'login' %}" class="btn btn-outline-danger">Login to Favorite</a>
         {% endif %}
 
         <a href="{% url 'movie_list' %}" class="btn btn-secondary ms-2">Back to Movies</a>
+
+        <!-- Leave a Review -->
+        {% if user.is_authenticated %}
+            <h4 class="mt-4">Leave a Review</h4>
+            <form method="post" action="{% url 'add_review' movie.id %}">
+                {% csrf_token %}
+                <div class="mb-2">
+                    <label for="rating" class="form-label">Rating (1–5)</label>
+                    <input type="number" name="rating" id="rating" class="form-control" min="1" max="5" required>
+                </div>
+                <div class="mb-2">
+                    <label for="comment" class="form-label">Comment</label>
+                    <textarea name="comment" id="comment" class="form-control" rows="3" required></textarea>
+                </div>
+                <button class="btn btn-primary">Submit Review</button>
+            </form>
+        {% else %}
+            <p class="mt-4"><a href="{% url 'login' %}">Login</a> to leave a review.</p>
+        {% endif %}
+
+        <!-- Average Rating -->
+        <h4 class="mt-4">Reviews</h4>
+        {% if avg_rating %}
+            <div class="mb-2">
+                <span>Average Rating: {{ avg_rating|floatformat:1 }}/5</span>
+                <span class="ms-2">
+                    {% for star in stars_display %}
+                        {% if star == 'full' %}
+                            <i class="bi bi-star-fill text-warning me-1"></i>
+                        {% elif star == 'half' %}
+                            <i class="bi bi-star-half text-warning me-1"></i>
+                        {% else %}
+                            <i class="bi bi-star text-warning me-1"></i>
+                        {% endif %}
+                    {% endfor %}
+                </span>
+            </div>
+        {% else %}
+            <p class="text-secondary">No ratings yet.</p>
+        {% endif %}
+
+        <!-- Individual Reviews -->
+        {% for review in reviews %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <strong>{{ review.user.username }}</strong>
+                    <span>
+                        {% for i in review_stars_range %}
+                            {% if i <= review.rating %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                    <p>{{ review.comment }}</p>
+                    <small class="text-muted">{{ review.created_at|date:"M d, Y H:i" }}</small>
+                </div>
+            </div>
+        {% empty %}
+            <p>No reviews yet.</p>
+        {% endfor %}
+
     </div>
 </div>
 

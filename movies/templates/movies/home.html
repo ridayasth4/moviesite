@@ -1,43 +1,136 @@
 {% extends 'movies/base.html' %}
 
-{% block title %}Home | MovieSite{% endblock %}
+{% block title %}Home | CinemaFlix{% endblock %}
+
+{% block extra_css %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+  .hover-opacity-100 { transition: opacity 0.3s; }
+  .hover-opacity-100:hover { opacity: 1 !important; }
+  .carousel-caption { background: rgba(0,0,0,0.5); border-radius: 5px; }
+</style>
+{% endblock %}
+
+{% block hero %}
+<!-- HERO CAROUSEL -->
+<div id="featuredCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    {% for movie in movies %}
+    <div class="carousel-item {% if forloop.first %}active{% endif %} position-relative">
+      {% if movie.poster %}
+      <img src="{{ movie.poster.url }}" class="d-block w-100" alt="{{ movie.title }}" style="height:500px; object-fit:cover;">
+      {% else %}
+      <div class="d-flex align-items-center justify-content-center bg-dark text-light" style="height:500px;">
+        <h2>{{ movie.title }}</h2>
+      </div>
+      {% endif %}
+
+      <div class="carousel-caption d-none d-md-block text-start p-3 rounded">
+        <h3 class="fw-bold">{{ movie.title }}</h3>
+        <p>{{ movie.description|truncatechars:150 }}</p>
+        <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger btn-sm">
+          <i class="bi bi-play-fill me-1"></i> Watch Now
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+</div>
+{% endblock %}
 
 {% block content %}
+<section>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-light fw-bold"><i class="bi bi-compass text-danger me-2"></i>Explore Movies</h2>
+    <a href="{% url 'movie_list' %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-grid me-1"></i>View All</a>
+  </div>
 
-<!-- ================= HERO / Featured Movies ================= -->
-<h2 class="mb-4">Featured Movies</h2>
+  {% if other_movies %}
+  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
+    {% for movie in other_movies %}
+    <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'50' }}">
+      <div class="card bg-black border border-secondary h-100">
+        <div class="position-relative overflow-hidden rounded-top">
+          {% if movie.poster %}
+          <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height:280px; object-fit:cover;">
+          {% else %}
+          <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height:280px;">
+            <i class="bi bi-film text-white fs-1"></i>
+          </div>
+          {% endif %}
 
-<div class="row">
-    {% for movie in movies %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm">
-            {% if movie.poster %}
-            <img src="{{ movie.poster.url }}" class="card-img-top">
-            {% endif %}
-            <div class="card-body text-center">
-                <h5>{{ movie.title }}</h5>
-                <p class="text-muted">{{ movie.genre }}</p>
-
-                {% if user.is_authenticated %}
-                <form action="{% url 'toggle_favorite' movie.id %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    {% if movie.id in user_fav_ids %}
-                    <button class="btn btn-danger btn-sm">❤️ Remove</button>
-                    {% else %}
-                    <button class="btn btn-outline-danger btn-sm">🤍 Add to Favorites</button>
-                    {% endif %}
-                </form>
-                {% else %}
-                <a href="{% url 'login' %}" class="btn btn-outline-danger btn-sm">Login to Favorite</a>
-                {% endif %}
-
-                <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-dark btn-sm mt-2">View Details</a>
+          <!-- Overlay buttons -->
+          <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100">
+            <div class="text-center">
+              <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger mb-2"><i class="bi bi-play-fill"></i> Play</a>
+              {% if user.is_authenticated %}
+              <form action="{% url 'toggle_favorite' movie.id %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light btn-sm">
+                  {% if movie.id in user_fav_ids %}
+                  <i class="bi bi-heart-fill"></i>
+                  {% else %}
+                  <i class="bi bi-heart"></i>
+                  {% endif %}
+                </button>
+              </form>
+              {% endif %}
             </div>
-        </div>
-    </div>
-    {% empty %}
-        <p class="text-center">No featured movies found.</p>
-    {% endfor %}
-</div>
+          </div>
 
+          <!-- Stars -->
+          <div class="position-absolute top-0 end-0 m-2">
+            <span class="badge bg-dark text-warning">
+              {% for star in movie.stars_list %}
+                {% if star == 'full' %}<i class="bi bi-star-fill"></i>{% elif star == 'half' %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+              {% endfor %}
+              {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
+            </span>
+          </div>
+
+          <!-- NEW badge -->
+          {% if movie.is_new %}
+          <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger">NEW</span></div>
+          {% endif %}
+        </div>
+
+        <div class="card-body p-2">
+          <h6 class="card-title text-light mb-1">{{ movie.title|truncatechars:25 }}</h6>
+          <p class="text-secondary small mb-1">{{ movie.genre }}</p>
+          <div class="d-flex justify-content-between align-items-center small text-secondary">
+            <span><i class="bi bi-clock me-1"></i>{{ movie.display_duration }}</span>
+            <span><i class="bi bi-eye me-1"></i>245K</span>
+          </div>
+        </div>
+
+        <div class="card-footer bg-transparent border-top border-secondary py-1">
+          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm w-100">
+            <i class="bi bi-info-circle me-1"></i>Details
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 bg-black rounded border border-secondary">
+    <i class="bi bi-film display-1 text-secondary mb-3"></i>
+    <h4 class="text-secondary mb-2">No movies available</h4>
+    <p class="text-muted mb-3">Start adding movies to your collection</p>
+    <a href="{% url 'movie_list' %}" class="btn btn-danger"><i class="bi bi-plus-circle me-1"></i>Add Movies</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init({ once: true });</script>
 {% endblock %}
