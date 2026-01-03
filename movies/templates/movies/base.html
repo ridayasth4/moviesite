@@ -4,134 +4,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>{% block title %}CinemaFlix{% endblock %}</title>
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="{% static 'movies/css/style.css' %}" rel="stylesheet">
 
     {% block extra_css %}{% endblock %}
 </head>
 
-<body class="bg-dark text-light">
+<body class="bg-dark text-light d-flex flex-column min-vh-100">
 
-<!-- ================= NAVBAR ================= -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-black fixed-top border-bottom border-danger">
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top py-3">
     <div class="container">
-        <a class="navbar-brand fw-bold text-danger fs-3" href="{% url 'home' %}">
-            <i class="bi bi-camera-reels me-2"></i>
-            CINEMA<span class="text-light">FLIX</span>
+        <a class="navbar-brand fw-bold text-danger fs-4 mb-0" href="{% url 'home' %}">
+            <i class="bi bi-play-circle-fill me-2"></i>CINEMA<span class="text-light">FLIX</span>
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                        Home
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'movie_list' %}">Movies</a>
-                </li>
+            <ul class="navbar-nav mx-auto bg-black bg-opacity-50 rounded-pill px-4 py-1 border border-secondary border-opacity-25">
+                
+                <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">Movies</a></li>
                 {% if user.is_authenticated %}
-            
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'favorites' %}">Favourites</a>
-</li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'favorites' %}">My Favourites</a></li>
                 {% endif %}
+                <li class="nav-item ms-lg-3">
+                    <form method="get" action="{% url 'movie_list' %}" class="search-pill d-flex align-items-center mt-2">
+                        <i class="bi bi-search text-secondary me-3"></i>
+                        <input type="text" name="q" class="search-input" placeholder="Search...">
+                    </form>
+                </li>
             </ul>
 
             <div class="d-flex align-items-center">
                 {% if user.is_authenticated %}
-                    <span class="me-3 small text-secondary">
-                        Hi, {{ user.username }}
-                    </span>
-                    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
-                        Logout
-                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle rounded-pill px-3" data-bs-toggle="dropdown">
+                            {{ user.username }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm me-2">
-                        Login
-                    </a>
-                    <a href="{% url 'register' %}" class="btn btn-danger btn-sm">
-                        Sign Up
-                    </a>
+                    <a href="{% url 'login' %}" class="btn btn-link text-light text-decoration-none me-3">Login</a>
+                    <a href="{% url 'register' %}" class="btn btn-danger rounded-pill px-4">Sign Up</a>
                 {% endif %}
             </div>
         </div>
     </div>
 </nav>
 
-<!-- ================= HERO BLOCK (OPTIONAL) ================= -->
-{% block hero %}{% endblock %}
-
-<!-- ================= MAIN CONTENT ================= -->
-<main class="container-fluid px-4 mt-5 pt-4">
-    {% block content %}{% endblock %}
+<main class="flex-grow-1 mt-5 pt-4">
+    {% block hero %}{% endblock %}
+    <div class="container-fluid px-lg-5">
+        {% block content %}{% endblock %}
+    </div>
 </main>
 
-<!-- ================= FOOTER ================= -->
-<footer class="bg-black text-secondary py-5 mt-5 border-top border-danger">
+<footer class="bg-black text-secondary py-5 mt-5 border-top border-danger border-2">
     <div class="container">
         <div class="row">
-
-            <div class="col-md-4 mb-3">
-                <h5 class="text-danger">CinemaFlix</h5>
-                <p class="small">
-                    Your ultimate destination for movies and entertainment.
-                </p>
-                <div class="d-flex gap-3">
-                    <i class="bi bi-facebook"></i>
-                    <i class="bi bi-twitter"></i>
-                    <i class="bi bi-instagram"></i>
-                    <i class="bi bi-youtube"></i>
+            <div class="col-md-6">
+                <h5 class="text-danger fw-bold">CinemaFlix</h5>
+                <p class="small text-secondary w-75">Streaming the best stories directly to your screen. No ads, just pure cinematic experience.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="d-flex justify-content-md-end gap-3 fs-4 mb-3">
+                    <a href="#" class="text-secondary"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-secondary"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="text-secondary"><i class="bi bi-youtube"></i></a>
                 </div>
+                <p class="small">© {% now "Y" %} CinemaFlix. All Rights Reserved.</p>
             </div>
-
-            <div class="col-md-2 mb-3">
-                <h6 class="text-danger">Browse</h6>
-                <ul class="list-unstyled small">
-                    <li><a class="text-secondary text-decoration-none" href="{% url 'home' %}">Home</a></li>
-                    <li><a class="text-secondary text-decoration-none" href="{% url 'movie_list' %}">Movies</a></li>
-                </ul>
-            </div>
-
-            <div class="col-md-2 mb-3">
-                <h6 class="text-danger">Account</h6>
-                <ul class="list-unstyled small">
-                    {% if user.is_authenticated %}
-                        <li><a class="text-secondary text-decoration-none" href="{% url 'logout' %}">Logout</a></li>
-                    {% else %}
-                        <li><a class="text-secondary text-decoration-none" href="{% url 'login' %}">Login</a></li>
-                        <li><a class="text-secondary text-decoration-none" href="{% url 'register' %}">Register</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-
-        </div>
-
-        <hr class="border-danger">
-
-        <div class="text-center small">
-            © {% now "Y" %} CinemaFlix. All rights reserved.
         </div>
     </div>
 </footer>
 
-<!-- ================= JS ================= -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 {% block extra_js %}{% endblock %}
 </body>
 </html>

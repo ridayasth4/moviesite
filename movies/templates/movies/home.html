@@ -7,16 +7,21 @@
 <style>
   .hover-opacity-100 { transition: opacity 0.3s; }
   .hover-opacity-100:hover { opacity: 1 !important; }
-  .carousel-caption { background: rgba(0,0,0,0.5); border-radius: 5px; }
+  .carousel-caption { background: rgba(0,0,0,0.5);}
 </style>
 {% endblock %}
 
 {% block hero %}
 <!-- HERO CAROUSEL -->
-<div id="featuredCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
-  <div class="carousel-inner">
+<div id="featuredCarousel" class="carousel slide mb-4 p-4 m-3" data-bs-ride="carousel">
+  <div class="carousel-inner rounded-4">
     {% for movie in movies %}
     <div class="carousel-item {% if forloop.first %}active{% endif %} position-relative">
+      {% if movie.is_new %}
+
+          <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger">NEW</span></div>
+
+          {% endif %}
       {% if movie.poster %}
       <img src="{{ movie.poster.url }}" class="d-block w-100" alt="{{ movie.title }}" style="height:500px; object-fit:cover;">
       {% else %}
@@ -25,9 +30,29 @@
       </div>
       {% endif %}
 
-      <div class="carousel-caption d-none d-md-block text-start p-3 rounded">
+      <div class="carousel-caption d-none d-md-block text-start p-3 rounded-4">
         <h3 class="fw-bold">{{ movie.title }}</h3>
         <p>{{ movie.description|truncatechars:150 }}</p>
+        <!-- Stars -->
+
+          <div class="position-relative top-0 mb-2">
+
+            <span class="badge text-warning">
+
+              {% for star in movie.stars_list %}
+
+                {% if star == 'full' %}<i class="bi bi-star-fill"></i>{% elif star == 'half' %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+
+              {% endfor %}
+
+              {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
+
+            </span>
+
+          </div>
+          <!-- NEW badge -->
+
+          
         <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger btn-sm">
           <i class="bi bi-play-fill me-1"></i> Watch Now
         </a>
