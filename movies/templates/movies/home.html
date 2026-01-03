@@ -128,6 +128,77 @@
   </div>
   {% endif %}
 </section>
+
+<!-- ================= TRENDING / POPULAR MOVIES ================= -->
+<section class="my-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="text-light fw-bold"><i class="bi bi-fire text-danger me-2"></i>Trending Now</h2>
+    <a href="{% url 'movie_list' %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-grid me-1"></i>View All</a>
+  </div>
+
+  {% if trending_movies %}
+  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
+    {% for movie in trending_movies %}
+    <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'50' }}">
+      <div class="card bg-black border border-secondary h-100">
+        <div class="position-relative overflow-hidden rounded-top">
+          {% if movie.poster %}
+          <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height:280px; object-fit:cover;">
+          {% else %}
+          <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height:280px;">
+            <i class="bi bi-film text-white fs-1"></i>
+          </div>
+          {% endif %}
+
+          <!-- Stars & Favorite -->
+          <div class="position-absolute top-0 end-0 m-2">
+            <span class="badge bg-dark text-warning">
+              {% for star in movie.stars_list %}
+                {% if star == 'full' %}<i class="bi bi-star-fill"></i>{% elif star == 'half' %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+              {% endfor %}
+              {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
+            </span>
+          </div>
+
+          {% if movie.is_new %}
+          <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger">NEW</span></div>
+          {% endif %}
+
+          {% if user.is_authenticated %}
+          <div class="position-absolute bottom-0 end-0 m-2">
+            <form action="{% url 'toggle_favorite' movie.id %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-light btn-sm">
+                {% if movie.id in user_fav_ids %}
+                <i class="bi bi-heart-fill"></i>
+                {% else %}
+                <i class="bi bi-heart"></i>
+                {% endif %}
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="card-body p-2">
+          <h6 class="card-title text-light mb-1">{{ movie.title|truncatechars:25 }}</h6>
+          <p class="text-secondary small mb-1">{{ movie.genre }}</p>
+        </div>
+
+        <div class="card-footer bg-transparent border-top border-secondary py-1">
+          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm w-100">
+            <i class="bi bi-info-circle me-1"></i>Details
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-secondary">No trending movies at the moment.</p>
+  {% endif %}
+</section>
+
 {% endblock %}
 
 {% block extra_js %}

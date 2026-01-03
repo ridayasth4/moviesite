@@ -8,23 +8,35 @@ from django.core.paginator import Paginator
 from django.db.models import Avg
 
 # ---------------- Home ----------------
-def home(request):
-    """Featured carousel + other movies grid."""
-    featured_movies = Movie.objects.filter(featured=True)\
-                                   .order_by('-created_at')[:6]
+from django.db.models import Count
 
+from django.db.models import Avg
+
+def home(request):
+    """Featured carousel + trending (top rated) + other movies grid."""
+
+    # ---------------- Featured movies ----------------
+    featured_movies = Movie.objects.filter(featured=True).order_by('-created_at')[:6]
     if not featured_movies.exists():
         featured_movies = Movie.objects.order_by('-created_at')[:6]
 
+    # ---------------- Latest/Other movies ----------------
     other_movies = Movie.objects.exclude(
         id__in=[m.id for m in featured_movies]
     ).order_by('-created_at')
 
+    # ---------------- Trending / Top Rated ----------------
+    trending_movies = Movie.objects.annotate(avg_rating_val=Avg('reviews__rating'))\
+                                   .order_by('-avg_rating_val')[:5]
+
+    # ---------------- User favorites ----------------
     user_fav_ids = set(request.user.favorites.values_list('movie_id', flat=True)) if request.user.is_authenticated else set()
 
-    # Compute stars and avg_rating_value for template
-    for movie in list(featured_movies) + list(other_movies):
-        avg = movie.avg_rating  # read-only property
+    # ---------------- Compute stars and avg_rating_value ----------------
+    all_movies = list(featured_movies) + list(other_movies) + list(trending_movies)
+    for movie in all_movies:
+        # Use the annotated rating for trending if exists, else property
+        avg = getattr(movie, 'avg_rating_val', None) or movie.avg_rating
         movie.avg_rating_value = avg
         movie.stars_list = [
             'full' if i <= avg else
@@ -33,9 +45,11 @@ def home(request):
             for i in range(1, 6)
         ]
 
+    # ---------------- Render ----------------
     return render(request, 'movies/home.html', {
         'movies': featured_movies,
         'other_movies': other_movies,
+        'trending_movies': trending_movies,
         'user_fav_ids': user_fav_ids,
     })
 
