@@ -1,0 +1,69 @@
+<div class="col" data-aos="fade-up" data-aos-delay="{{ delay|default:0 }}">
+  <div class="card bg-black border border-secondary h-100">
+    <div class="position-relative overflow-hidden rounded-top">
+      <a href="{% url 'movie_detail' movie.id %}">
+        {% if movie.poster %}
+          <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height:280px; object-fit:cover;">
+        {% else %}
+          <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height:280px;">
+            <i class="bi bi-film text-white fs-1"></i>
+          </div>
+        {% endif %}
+      </a>
+
+      <!-- Overlay buttons -->
+      <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100">
+        <div class="text-center">
+          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger mb-2">
+            <i class="bi bi-play-fill"></i> Play
+          </a>
+          {% if user.is_authenticated %}
+          <form action="{% url 'toggle_favorite' movie.id %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-light btn-sm">
+              {% if movie.id in user_fav_ids %}
+                <i class="bi bi-heart-fill"></i>
+              {% else %}
+                <i class="bi bi-heart"></i>
+              {% endif %}
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Stars -->
+      <div class="position-absolute top-0 end-0 m-2">
+        {% if movie.stars_list %}
+        <span class="badge bg-dark text-warning">
+          {% for star in movie.stars_list %}
+            {% if star == 'full' %}<i class="bi bi-star-fill"></i>
+            {% elif star == 'half' %}<i class="bi bi-star-half"></i>
+            {% else %}<i class="bi bi-star"></i>{% endif %}
+          {% endfor %}
+          {{ movie.avg_rating_value|default:"0"|floatformat:1 }}
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- NEW badge -->
+      {% if movie.is_new %}
+      <div class="position-absolute top-0 start-0 m-2">
+        <span class="badge bg-danger">NEW</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card-body p-2">
+      <h6 class="card-title text-light mb-1">{{ movie.title|truncatechars:25 }}</h6>
+      {% if movie.genre %}<p class="text-secondary small mb-1">{{ movie.genre.name }}</p>{% endif %}
+      {% if movie.display_duration %}<span class="small text-secondary"><i class="bi bi-clock me-1"></i>{{ movie.display_duration }}</span>{% endif %}
+    </div>
+
+    <div class="card-footer bg-transparent border-top border-secondary py-1">
+      <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm w-100">
+        <i class="bi bi-info-circle me-1"></i>Details
+      </a>
+    </div>
+  </div>
+</div>

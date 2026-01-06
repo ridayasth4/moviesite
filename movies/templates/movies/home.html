@@ -18,10 +18,8 @@
     {% for movie in movies %}
     <div class="carousel-item {% if forloop.first %}active{% endif %} position-relative">
       {% if movie.is_new %}
-
-          <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger rounded-pill">NEW</span></div>
-
-          {% endif %}
+      <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger rounded-pill">NEW</span></div>
+      {% endif %}
       {% if movie.poster %}
       <img src="{{ movie.poster.url }}" class="d-block w-100" alt="{{ movie.title }}" style="height: 400px; object-fit:cover;">
       {% else %}
@@ -33,28 +31,19 @@
       <div class="carousel-caption text-start p-4 rounded-4">
         <h3 class="fw-bold">{{ movie.title }}</h3>
         <p>{{ movie.description|truncatechars:50 }}</p>
-        <p class="mb-1 small">{{ movie.genre }}</p>
+        <p class="mb-1 small">{{ movie.genre.name }}</p>
+        <span class="small"><i class="bi bi-clock me-1"></i><small>{{ movie.display_duration }}</small></span>
 
-            <span class="small"><i class="bi bi-clock me-1"></i><small>{{ movie.display_duration }}</small></span>
         <!-- Stars -->
+        <div class="position-relative top-0 mb-2">
+          <span class="badge text-warning">
+            {% for star in movie.stars_list %}
+              {% if star == 'full' %}<i class="bi bi-star-fill"></i>{% elif star == 'half' %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+            {% endfor %}
+            {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
+          </span>
+        </div>
 
-          <div class="position-relative top-0 mb-2">
-
-            <span class="badge text-warning">
-
-              {% for star in movie.stars_list %}
-
-                {% if star == 'full' %}<i class="bi bi-star-fill"></i>{% elif star == 'half' %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
-
-              {% endfor %}
-
-              {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
-            </span>
-
-          </div>
-          <!-- NEW badge -->
-
-          
         <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger btn-sm">
           <i class="bi bi-play-fill me-1"></i> Watch Now
         </a>
@@ -73,6 +62,8 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- Latest Movies -->
 <section>
   <div class="d-flex justify-content-between align-items-center p-3">
     <h3 class="text-light fw-bold"><i class="bi bi-compass text-success me-2"></i>Latest Movie</h3>
@@ -82,68 +73,7 @@
   {% if other_movies %}
   <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4 p-3">
     {% for movie in other_movies %}
-    <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'50' }}">
-      <div class="card bg-black border border-secondary h-100">
-        <div class="position-relative overflow-hidden rounded-top">
-          {% if movie.poster %}
-          <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height:280px; object-fit:cover;">
-          {% else %}
-          <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height:280px;">
-            <i class="bi bi-film text-white fs-1"></i>
-          </div>
-          {% endif %}
-
-          <!-- Overlay buttons -->
-          <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100">
-            <div class="text-center">
-              <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger mb-2"><i class="bi bi-play-fill"></i> Play</a>
-              {% if user.is_authenticated %}
-              <form action="{% url 'toggle_favorite' movie.id %}" method="post" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-light btn-sm">
-                  {% if movie.id in user_fav_ids %}
-                  <i class="bi bi-heart-fill"></i>
-                  {% else %}
-                  <i class="bi bi-heart"></i>
-                  {% endif %}
-                </button>
-              </form>
-              {% endif %}
-            </div>
-          </div>
-
-          <!-- Stars -->
-          <div class="position-absolute top-0 end-0 m-2">
-            <span class="badge bg-dark text-warning">
-              {% for star in movie.stars_list %}
-                {% if star == 'full' %}<i class="bi bi-star-fill"></i>{% elif star == 'half' %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
-              {% endfor %}
-              {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
-            </span>
-          </div>
-
-          <!-- NEW badge -->
-          {% if movie.is_new %}
-          <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger">NEW</span></div>
-          {% endif %}
-        </div>
-
-        <div class="card-body p-2">
-          <h6 class="card-title text-light mb-2">{{ movie.title|truncatechars:20 }}</h6>
-          
-          <div class="d-flex justify-content-between align-items-center small text-secondary">
-            <p class="mb-1">{{ movie.genre }}</p>
-            <span><i class="bi bi-clock me-1"></i>{{ movie.display_duration }}</span>
-          </div>
-        </div>
-
-        <div class="card-footer bg-transparent border-top border-secondary py-1 align-items-center d-flex justify-content-center">
-          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm m-2">
-            <i class="bi bi-info-circle me-1"></i>Details
-          </a>
-        </div>
-      </div>
-    </div>
+      {% include 'movies/movie_card.html' with movie=movie delay=forloop.counter0 user_fav_ids=user_fav_ids %}
     {% endfor %}
   </div>
   {% else %}
@@ -156,7 +86,7 @@
   {% endif %}
 </section>
 
-<!-- ================= TRENDING / POPULAR MOVIES ================= -->
+<!-- Top Rated / Trending -->
 <section class="my-5">
   <div class="d-flex justify-content-between align-items-center p-3">
     <h2 class="text-light fw-bold"><i class="bi bi-fire text-danger me-2"></i>Top Rated</h2>
@@ -166,65 +96,29 @@
   {% if trending_movies %}
   <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4 p-3">
     {% for movie in trending_movies %}
-    <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'50' }}">
-      <div class="card bg-black border border-secondary h-100">
-        <div class="position-relative overflow-hidden rounded-top">
-          {% if movie.poster %}
-          <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height:280px; object-fit:cover;">
-          {% else %}
-          <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height:280px;">
-            <i class="bi bi-film text-white fs-1"></i>
-          </div>
-          {% endif %}
-
-          <!-- Stars & Favorite -->
-          <div class="position-absolute top-0 end-0 m-2">
-            <span class="badge bg-dark text-warning">
-              {% for star in movie.stars_list %}
-                {% if star == 'full' %}<i class="bi bi-star-fill"></i>{% elif star == 'half' %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
-              {% endfor %}
-              {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
-            </span>
-          </div>
-
-          {% if movie.is_new %}
-          <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger">NEW</span></div>
-          {% endif %}
-
-          {% if user.is_authenticated %}
-          <div class="position-absolute bottom-0 end-0 m-2">
-            <form action="{% url 'toggle_favorite' movie.id %}" method="post" class="d-inline">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-outline-light btn-sm">
-                {% if movie.id in user_fav_ids %}
-                <i class="bi bi-heart-fill"></i>
-                {% else %}
-                <i class="bi bi-heart"></i>
-                {% endif %}
-              </button>
-            </form>
-          </div>
-          {% endif %}
-        </div>
-
-        <div class="card-body p-2">
-          <h6 class="card-title text-light mb-1">{{ movie.title|truncatechars:25 }}</h6>
-          <p class="text-secondary small mb-1">{{ movie.genre }}</p>
-        </div>
-
-        <div class="card-footer bg-transparent border-top border-secondary py-1">
-          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm w-100">
-            <i class="bi bi-info-circle me-1"></i>Details
-          </a>
-        </div>
-      </div>
-    </div>
+      {% include 'movies/movie_card.html' with movie=movie delay=forloop.counter0 user_fav_ids=user_fav_ids %}
     {% endfor %}
   </div>
   {% else %}
   <p class="text-secondary">No trending movies at the moment.</p>
   {% endif %}
 </section>
+
+<!-- Movies by Genre -->
+{% for genre, movies in movies_by_genre.items %}
+<section class="mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="text-light fw-bold">{{ genre.name }}</h3>
+    <a href="{% url 'genre_movies' genre.id %}" class="text-decoration-none text-danger">View all →</a>
+  </div>
+
+  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-4">
+    {% for movie in movies %}
+      {% include 'movies/movie_card.html' with movie=movie delay=forloop.counter0 user_fav_ids=user_fav_ids %}
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
 
 {% endblock %}
 
