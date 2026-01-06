@@ -13,26 +13,29 @@
 
 {% block hero %}
 <!-- HERO CAROUSEL -->
-<div id="featuredCarousel" class="carousel slide mb-4 p-4 m-3" data-bs-ride="carousel">
+<div id="featuredCarousel" class="carousel slide mb-4 p-4" data-bs-ride="carousel">
   <div class="carousel-inner rounded-4">
     {% for movie in movies %}
     <div class="carousel-item {% if forloop.first %}active{% endif %} position-relative">
       {% if movie.is_new %}
 
-          <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger">NEW</span></div>
+          <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger rounded-pill">NEW</span></div>
 
           {% endif %}
       {% if movie.poster %}
-      <img src="{{ movie.poster.url }}" class="d-block w-100" alt="{{ movie.title }}" style="height:500px; object-fit:cover;">
+      <img src="{{ movie.poster.url }}" class="d-block w-100" alt="{{ movie.title }}" style="height: 400px; object-fit:cover;">
       {% else %}
-      <div class="d-flex align-items-center justify-content-center bg-dark text-light" style="height:500px;">
+      <div class="d-flex align-items-start justify-content-center bg-dark text-light" style="height:400px;">
         <h2>{{ movie.title }}</h2>
       </div>
       {% endif %}
 
-      <div class="carousel-caption d-none d-md-block text-start p-3 rounded-4">
+      <div class="carousel-caption text-start p-4 rounded-4">
         <h3 class="fw-bold">{{ movie.title }}</h3>
-        <p>{{ movie.description|truncatechars:150 }}</p>
+        <p>{{ movie.description|truncatechars:50 }}</p>
+        <p class="mb-1 small">{{ movie.genre }}</p>
+
+            <span class="small"><i class="bi bi-clock me-1"></i><small>{{ movie.display_duration }}</small></span>
         <!-- Stars -->
 
           <div class="position-relative top-0 mb-2">
@@ -46,7 +49,6 @@
               {% endfor %}
 
               {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
-
             </span>
 
           </div>
@@ -72,13 +74,13 @@
 
 {% block content %}
 <section>
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-light fw-bold"><i class="bi bi-compass text-danger me-2"></i>Explore Movies</h2>
-    <a href="{% url 'movie_list' %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-grid me-1"></i>View All</a>
+  <div class="d-flex justify-content-between align-items-center p-3">
+    <h3 class="text-light fw-bold"><i class="bi bi-compass text-success me-2"></i>Latest Movie</h3>
+    <a href="{% url 'movie_list' %}" class="btn btn-dark btn-sm"><i class="bi bi-grid me-1"></i>View All</a>
   </div>
 
   {% if other_movies %}
-  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
+  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4 p-3">
     {% for movie in other_movies %}
     <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'50' }}">
       <div class="card bg-black border border-secondary h-100">
@@ -127,16 +129,16 @@
         </div>
 
         <div class="card-body p-2">
-          <h6 class="card-title text-light mb-1">{{ movie.title|truncatechars:25 }}</h6>
-          <p class="text-secondary small mb-1">{{ movie.genre }}</p>
+          <h6 class="card-title text-light mb-2">{{ movie.title|truncatechars:20 }}</h6>
+          
           <div class="d-flex justify-content-between align-items-center small text-secondary">
+            <p class="mb-1">{{ movie.genre }}</p>
             <span><i class="bi bi-clock me-1"></i>{{ movie.display_duration }}</span>
-            <span><i class="bi bi-eye me-1"></i>245K</span>
           </div>
         </div>
 
-        <div class="card-footer bg-transparent border-top border-secondary py-1">
-          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm w-100">
+        <div class="card-footer bg-transparent border-top border-secondary py-1 align-items-center d-flex justify-content-center">
+          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm m-2">
             <i class="bi bi-info-circle me-1"></i>Details
           </a>
         </div>
@@ -156,13 +158,13 @@
 
 <!-- ================= TRENDING / POPULAR MOVIES ================= -->
 <section class="my-5">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="text-light fw-bold"><i class="bi bi-fire text-danger me-2"></i>Trending Now</h2>
+  <div class="d-flex justify-content-between align-items-center p-3">
+    <h2 class="text-light fw-bold"><i class="bi bi-fire text-danger me-2"></i>Top Rated</h2>
     <a href="{% url 'movie_list' %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-grid me-1"></i>View All</a>
   </div>
 
   {% if trending_movies %}
-  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
+  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4 p-3">
     {% for movie in trending_movies %}
     <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'50' }}">
       <div class="card bg-black border border-secondary h-100">
