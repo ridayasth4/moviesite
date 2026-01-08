@@ -1,69 +1,208 @@
-<div class="col" data-aos="fade-up" data-aos-delay="{{ delay|default:0 }}">
-  <div class="card bg-black border border-secondary h-100">
-    <div class="position-relative overflow-hidden rounded-top">
-      <a href="{% url 'movie_detail' movie.id %}">
-        {% if movie.poster %}
-          <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height:280px; object-fit:cover;">
-        {% else %}
-          <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height:280px;">
-            <i class="bi bi-film text-white fs-1"></i>
-          </div>
-        {% endif %}
-      </a>
-
-      <!-- Overlay buttons -->
-      <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100">
-        <div class="text-center">
-          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger mb-2">
-            <i class="bi bi-play-fill"></i> Play
-          </a>
-          {% if user.is_authenticated %}
-          <form action="{% url 'toggle_favorite' movie.id %}" method="post" class="d-inline">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-outline-light btn-sm">
-              {% if movie.id in user_fav_ids %}
-                <i class="bi bi-heart-fill"></i>
-              {% else %}
-                <i class="bi bi-heart"></i>
-              {% endif %}
-            </button>
-          </form>
+<div class="col-6 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="{{ delay|default:0 }}">
+  <div class="movie-card-flip" onclick="this.classList.toggle('active')">
+    
+    <div class="card-side front shadow-lg">
+      <div class="card bg-black border-0 h-100 overflow-hidden">
+        <div class="poster-container">
+          {% if movie.poster %}
+            <img src="{{ movie.poster.url }}" class="w-100 h-100 object-fit-cover main-poster" alt="{{ movie.title }}">
+          {% else %}
+            <div class="w-100 h-100 bg-dark d-flex align-items-center justify-content-center">
+              <i class="bi bi-film text-secondary fs-1"></i>
+            </div>
           {% endif %}
+          
+          <div class="glass-badge top-right">
+            <i class="bi bi-star-fill text-warning"></i>
+            <span>{{ movie.avg_rating_value|default:"0"|floatformat:1 }}</span>
+          </div>
+
+          {% if movie.is_new %}
+            <div class="glass-badge top-left bg-danger border-0">NEW</div>
+          {% endif %}
+
+          <div class="title-gradient-overlay">
+            <h6 class="text-white fw-bold mb-0 text-truncate px-3 py-2">{{ movie.title }}</h6>
+            <p class="text-white-50 small mb-0 px-3 pb-2" style="font-size: 0.7rem;">
+              {{ movie.genre.name }} • {{ movie.release_date|date:"Y" }}
+            </p>
+          </div>
         </div>
       </div>
+    </div>
+    
+    <div class="card-side back shadow-lg">
+      <div class="card-inner-back h-100 p-3 d-flex flex-column">
+        <div class="d-flex align-items-start justify-content-between mb-3">
+          <h6 class="text-white fw-bold m-0 text-truncate" style="max-width: 70%;">{{ movie.title }}</h6>
+        </div>
 
-      <!-- Stars -->
-      <div class="position-absolute top-0 end-0 m-2">
-        {% if movie.stars_list %}
-        <span class="badge bg-dark text-warning">
-          {% for star in movie.stars_list %}
-            {% if star == 'full' %}<i class="bi bi-star-fill"></i>
-            {% elif star == 'half' %}<i class="bi bi-star-half"></i>
-            {% else %}<i class="bi bi-star"></i>{% endif %}
-          {% endfor %}
-          {{ movie.avg_rating_value|default:"0"|floatformat:1 }}
-        </span>
-        {% endif %}
+        <div class="stats-box mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-white-50">Score</span>
+            <span class="text-warning fw-bold">{% widthratio movie.avg_rating_value 10 5 %}.0 / 5</span>
+          </div>
+          <div class="progress bg-black rounded-pill" style="height: 5px;">
+            <div class="progress-bar bg-gradient-danger" style="width: calc(({{ movie.avg_rating_value|default:0 }} / 10) * 100%)"></div>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="info-card">
+              <i class="bi bi-clock text-danger"></i>
+              <span>{{ movie.display_duration|default:"N/A" }}</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="info-card">
+              <i class="bi bi-calendar-event text-danger"></i>
+              <span>{{ movie.release_date|date:"Y" }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-auto d-grid gap-2">
+          <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger btn-sm rounded-pill py-2 shadow-sm">
+            <i class="bi bi-play-fill me-1"></i> WATCH NOW
+          </a>
+          <div class="d-flex gap-2">
+            <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-glass-white btn-sm rounded-pill flex-grow-1">Details</a>
+            <!-- <button class="btn btn-glass-white btn-sm rounded-pill"><i class="bi bi-share"></i></button> -->
+            {% if user.is_authenticated %}
+            <form action="{% url 'toggle_favorite' movie.id %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="fav-btn {% if movie.id in user_fav_ids %}active{% endif %}">
+                <i class="bi bi-heart-fill"></i>
+              </button>
+            </form>
+          {% endif %}
+          </div>
+        </div>
       </div>
-
-      <!-- NEW badge -->
-      {% if movie.is_new %}
-      <div class="position-absolute top-0 start-0 m-2">
-        <span class="badge bg-danger">NEW</span>
-      </div>
-      {% endif %}
     </div>
-
-    <div class="card-body p-2">
-      <h6 class="card-title text-light mb-1">{{ movie.title|truncatechars:25 }}</h6>
-      {% if movie.genre %}<p class="text-secondary small mb-1">{{ movie.genre.name }}</p>{% endif %}
-      {% if movie.display_duration %}<span class="small text-secondary"><i class="bi bi-clock me-1"></i>{{ movie.display_duration }}</span>{% endif %}
-    </div>
-
-    <div class="card-footer bg-transparent border-top border-secondary py-1">
-      <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm w-100">
-        <i class="bi bi-info-circle me-1"></i>Details
-      </a>
-    </div>
+    
   </div>
 </div>
+
+<style>
+/* Modern Core Variables */
+:root {
+  --card-height: 300px;
+  --transition-speed: 2s;
+}
+
+.movie-card-flip {
+  perspective: 1200px;
+  height: var(--card-height);
+  position: relative;
+}
+
+.card-side {
+  position: absolute;
+  width: 100%;
+  height: 90%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform var(--transition-speed) cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.back {
+  transform: rotateY(180deg);
+  background: #0f0f0f;
+  background-image: radial-gradient(circle at 20% 20%, rgba(220, 53, 69, 0.15) 0%, transparent 40%);
+}
+
+.movie-card-flip:hover .front, .movie-card-flip.active .front { transform: rotateY(-180deg); }
+.movie-card-flip:hover .back, .movie-card-flip.active .back { transform: rotateY(0deg); }
+
+/* Front Styling */
+.poster-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.main-poster {
+  transition: transform 2s ease;
+}
+
+.movie-card-flip:hover .main-poster {
+  transform: scale(1.1) rotate(1deg);
+}
+
+.title-gradient-overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding-top: 60px;
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, transparent 100%);
+}
+
+/* Glassmorphism */
+.glass-badge {
+  position: absolute;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.70rem;
+  font-weight: bold;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.1);
+  /* border: 1px solid rgba(255, 255, 255, 0.1); */
+  color: white;
+  z-index: 5;
+}
+
+.top-right { top: 12px; right: 12px; }
+.top-left { top: 12px; left: 12px; }
+
+/* Back Styling */
+.info-card {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.info-card i { font-size: 1rem; }
+.info-card span { font-size: 0.7rem; color: #eee; font-weight: 500; }
+
+.fav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.fav-btn.active { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
+.fav-btn:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.2); }
+
+.bg-gradient-danger {
+  background: linear-gradient(90deg, #ff4d4d, #dc3545);
+}
+
+.btn-glass-white {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.3s;
+}
+
+.btn-glass-white:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+</style>

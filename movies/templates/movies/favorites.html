@@ -2,48 +2,13 @@
 {% block title %}My Favorites | CinemaFlix{% endblock %}
 
 {% block content %}
-<h2 class="text-light mb-4"><i class="bi bi-heart text-danger me-2"></i>My Favorite Movies</h2>
+<h2 class="text-light mb-4 mt-4">Favorites</h2>
 
 {% if fav_movies %}
 <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
   {% for movie in fav_movies %}
-  <div class="col">
-    <div class="card bg-black border border-secondary h-100">
-      <div class="position-relative">
-        {% if movie.poster %}
-        <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }}" style="height:280px; object-fit:cover;">
-        {% else %}
-        <div class="card-img-top bg-dark d-flex align-items-center justify-content-center" style="height:280px;">
-          <i class="bi bi-film text-white fs-1"></i>
-        </div>
-        {% endif %}
-
-        <div class="position-absolute top-0 end-0 m-2">
-          <span class="badge bg-dark text-warning">
-            {% for star in movie.stars_list %}
-              {% if star == 'full' %}<i class="bi bi-star-fill"></i>{% elif star == 'half' %}<i class="bi bi-star-half"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
-            {% endfor %}
-            {{ movie.avg_rating|default:"N/A"|floatformat:1 }}
-          </span>
-        </div>
-
-        {% if movie.is_new %}
-        <div class="position-absolute top-0 start-0 m-2"><span class="badge bg-danger">NEW</span></div>
-        {% endif %}
-      </div>
-
-      <div class="card-body p-2">
-        <h6 class="card-title text-light mb-1">{{ movie.title|truncatechars:25 }}</h6>
-        <p class="text-secondary small mb-1">{{ movie.genre }}</p>
-      </div>
-
-      <div class="card-footer bg-transparent border-top border-secondary py-1">
-        <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-outline-light btn-sm w-100">
-          <i class="bi bi-info-circle me-1"></i>Details
-        </a>
-      </div>
-    </div>
-  </div>
+      {% include 'movies/movie_card.html' with movie=movie delay=forloop.counter0 user_fav_ids=user_fav_ids %}
+  
   {% endfor %}
 </div>
 {% else %}

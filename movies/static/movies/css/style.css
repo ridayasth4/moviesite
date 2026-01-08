@@ -1,10 +1,10 @@
 body { font-family: 'Poppins', sans-serif; }
         .navbar { 
             backdrop-filter: blur(3px); 
-            background-color: rgba(0,0,0,0.40) !important; 
+            background-color: rgba(37, 35, 35, 0.275) !important; 
             border-bottom: 1px solid #dc3545;
         }
-        .nav-link { font-weight: 500; transition: color 0.3s; }
+        .nav-link { font-weight: 400; transition: color 0.3s; }
         .nav-link:hover { color: #dc3545 !important; }
         .search-input { 
             border: none; border-bottom: 1px; 
@@ -14,3 +14,7 @@ body { font-family: 'Poppins', sans-serif; }
         .search-pill:hover .search-input, .search-input:focus { width: 180px; }
         .card { transition: transform 0.3s ease; border: none; }
         .card:hover { transform: scale(1.03); z-index: 5; }
+
+        .page-item:not(.disabled) .page-link {
+    cursor: pointer;
+}

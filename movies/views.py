@@ -28,12 +28,12 @@ def home(request):
     # Others / Latest movies
     other_movies = Movie.objects.select_related('genre') \
         .exclude(id__in=featured_movies.values_list('id', flat=True)) \
-        .order_by('-created_at')[:5]
+        .order_by('-created_at')[:4]
 
     # Trending movies
     trending_movies = Movie.objects.select_related('genre') \
         .annotate(avg_rating_val=Avg('reviews__rating')) \
-        .order_by('-avg_rating_val')[:5]
+        .order_by('-avg_rating_val')[:4]
 
     # User favorites
     user_fav_ids = set(
@@ -49,7 +49,7 @@ def home(request):
     )
 
     movies_by_genre = {
-        genre: genre.movies.all()[:8]
+        genre: genre.movies.all()[:4]
         for genre in genres
     }
 
@@ -119,26 +119,50 @@ def register_view(request):
 
 
 # ---------------- Movie List ----------------
-def movie_list(request, genre_id=None):
-    movies = Movie.objects.select_related('genre').order_by('-release_date')
+def movie_list(request, genre_id=None, filter_type=None):
+    movies = Movie.objects.select_related('genre')
+    selected_genre = None
 
-    if q := request.GET.get('q'):
-        movies = movies.filter(title__icontains=q)
-
+    # Filter by genre
     if genre_id:
-        movies = movies.filter(genre_id=genre_id)
+        selected_genre = get_object_or_404(Genre, id=genre_id)
+        movies = movies.filter(genre=selected_genre)
 
+    # Filter by Top Rated / Trending
+    if filter_type == 'top-rated':
+        movies = movies.annotate(avg_rating_val=Avg('reviews__rating')).order_by('-avg_rating_val')
+    elif filter_type == 'trending':
+        # Trending could be latest + top rated combination or based on views
+        movies = movies.annotate(avg_rating_val=Avg('reviews__rating')).order_by('-avg_rating_val', '-created_at')
+    elif not genre_id:
+        # Default: order by release_date
+        movies = movies.order_by('-release_date')
+
+    # Pagination
     paginator = Paginator(movies, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    genres = Genre.objects.all()
+    # Movies by Genre sections (only show if not filtering)
+    movies_by_genre = {}
+    if not selected_genre and not filter_type:
+        genres = Genre.objects.prefetch_related(
+            Prefetch(
+                'movies',
+                queryset=Movie.objects.select_related('genre').order_by('-release_date')[:10],
+                to_attr='top_movies'
+            )
+        )
+        movies_by_genre = {genre: genre.top_movies for genre in genres if genre.top_movies}
 
+    # User favorites
     user_fav_ids = set(
         request.user.favorites.values_list('movie_id', flat=True)
     ) if request.user.is_authenticated else set()
 
-    for movie in page_obj:
-        avg = movie.avg_rating
+    # Compute stars
+    all_movies = list(page_obj) + [m for genre_movies in movies_by_genre.values() for m in genre_movies]
+    for movie in all_movies:
+        avg = getattr(movie, 'avg_rating_val', None) or movie.avg_rating or 0
         movie.avg_rating_value = avg
         movie.stars_list = [
             'full' if i <= avg else
@@ -149,8 +173,10 @@ def movie_list(request, genre_id=None):
 
     return render(request, 'movies/movie_list.html', {
         'page_obj': page_obj,
-        'genres': genres,
+        'movies_by_genre': movies_by_genre,
         'user_fav_ids': user_fav_ids,
+        'selected_genre': selected_genre,
+        'filter_type': filter_type,
     })
 
 # ---------------- Movie Detail ----------------

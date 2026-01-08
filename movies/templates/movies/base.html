@@ -29,9 +29,9 @@
             <ul class="navbar-nav mx-auto bg-black bg-opacity-50 rounded-pill px-4 py-1 border border-secondary border-opacity-25">
                 
                 <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">Movies</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">All Movies</a></li>
                 {% if user.is_authenticated %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'favorites' %}">My Favourites</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'favorites' %}">Favourites</a></li>
                 {% endif %}
                 <li class="nav-item ms-lg-3">
                     <form method="get" action="{% url 'movie_list' %}" class="search-pill d-flex align-items-center mt-2">
@@ -54,8 +54,8 @@
                         </ul>
                     </div>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-link text-light text-decoration-none me-3">Login</a>
-                    <a href="{% url 'register' %}" class="btn btn-danger rounded-pill px-4">Sign Up</a>
+                    <a href="{% url 'login' %}" class="btn btn-dark text-light text-decoration-none me-3 btn-sm">Log in</a>
+                    <a href="{% url 'register' %}" class="btn btn-success px-4 btn-sm">Sign Up</a>
                 {% endif %}
             </div>
         </div>
