@@ -26,10 +26,31 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto bg-black bg-opacity-50 rounded-pill px-4 py-1 border border-secondary border-opacity-25">
+            <ul class="navbar-nav mx-auto bg-black bg-opacity-50 rounded-pill px-3 py-1 border border-secondary border-opacity-25 small">
                 
                 <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">All Movies</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">Browse</a></li>
+                <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle"
+       href="#"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false">
+        </i>Genres
+    </a>
+
+    <ul class="dropdown-menu dropdown-menu-dark shadow mt-2 rounded-4">
+        {% for genre in navbar_genres %}
+            <li>
+                <a class="dropdown-item d-flex justify-content-center small"
+                   href="{% url 'movie_list_by_genre' genre.id %}">
+                    {{ genre.name }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</li>
+
                 {% if user.is_authenticated %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'favorites' %}">Favourites</a></li>
                 {% endif %}
