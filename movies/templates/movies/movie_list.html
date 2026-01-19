@@ -9,6 +9,8 @@
 <h2 class="text-light mb-4 mt-4">
 {% if selected_genre %}
   Movies in {{ selected_genre.name }}
+{% elif filter_type == 'latest' %}
+  Latest Releases
 {% else %}
   All Movies
 {% endif %}

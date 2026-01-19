@@ -46,7 +46,7 @@
 
         <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-danger btn-sm">
           <i class="bi bi-play-fill me-1"></i> Watch Now
-        </a>
+        </a>        
       </div>
     </div>
     {% endfor %}
@@ -66,7 +66,7 @@
 <!-- Latest Movies -->
 <section>
   <div class="d-flex justify-content-between align-items-center">
-    <h3 class="text-light fw-bold">Latest Movie</h3>
+    <h3 class="text-light fw-bold">Recently Uploaded</h3>
     <a href="{% url 'movie_list' %}" class="btn btn-dark btn-sm"><i class="bi bi-grid me-1"></i>View All</a>
   </div>
 
@@ -103,6 +103,27 @@
   <p class="text-secondary">No trending movies at the moment.</p>
   {% endif %}
 </section>
+
+<!-- Latest Release -->
+<section>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="text-light fw-bold">Latest Release</h3>
+    <a href="{% url 'latest_movies' %}" class="btn btn-dark btn-sm"><i class="bi bi-grid me-1"></i>View All</a>
+  </div>
+
+  {% if latest_movies %}
+  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4 p-3">
+    {% for movie in latest_movies %}
+      {% include 'movies/movie_card.html' with movie=movie delay=forloop.counter0 user_fav_ids=user_fav_ids %}
+    {% endfor %}
+    </div>
+
+
+{% else %}
+<p class="text-light">No movies found.</p>
+{% endif %}
+</section>
+
 
 <!-- Movies by Genre -->
 {% for genre, movies in movies_by_genre.items %}

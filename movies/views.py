@@ -35,6 +35,12 @@ def home(request):
         .annotate(avg_rating_val=Avg('reviews__rating')) \
         .order_by('-avg_rating_val')[:4]
 
+    # Latest releases (by release_date)
+    latest_movies = Movie.objects.select_related('genre') \
+        .exclude(id__in=featured_movies.values_list('id', flat=True)) \
+        .order_by('-release_date')[:5]
+
+
     # User favorites
     user_fav_ids = set(
         request.user.favorites.values_list('movie_id', flat=True)
@@ -54,9 +60,13 @@ def home(request):
     }
 
     # Combine all movies for stars computation
-    all_movies = list(featured_movies) + list(other_movies) + list(trending_movies)
-    for genre_movies in movies_by_genre.values():
-        all_movies += list(genre_movies)
+    all_movies = (
+        list(featured_movies)
+        + list(other_movies)
+        + list(trending_movies)
+        + list(latest_movies)
+)
+
 
     # Stars computation
     for movie in all_movies:
@@ -75,6 +85,8 @@ def home(request):
         'trending_movies': trending_movies,
         'movies_by_genre': movies_by_genre,
         'user_fav_ids': user_fav_ids,
+        'latest_movies': latest_movies,
+
     })
 
 # ---------------- Login ----------------
@@ -134,9 +146,9 @@ def movie_list(request, genre_id=None, filter_type=None):
     elif filter_type == 'trending':
         # Trending could be latest + top rated combination or based on views
         movies = movies.annotate(avg_rating_val=Avg('reviews__rating')).order_by('-avg_rating_val', '-created_at')
-    elif not genre_id:
-        # Default: order by release_date
+    elif filter_type == 'latest' or (not genre_id and not filter_type):
         movies = movies.order_by('-release_date')
+
 
     # Pagination
     paginator = Paginator(movies, 20)

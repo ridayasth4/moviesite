@@ -13,6 +13,7 @@ urlpatterns = [
     path('movies/<int:pk>/', views.movie_detail, name='movie_detail'),
     path('movies/<int:movie_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('movies/<int:movie_id>/review/', views.add_review, name='add_review'),
+    path('movies/latest/', views.movie_list, {'filter_type': 'latest'}, name='latest_movies'),
 
     # Favorites
     path('favorites/', views.favorites_list, name='favorites'),
