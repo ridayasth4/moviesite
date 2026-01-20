@@ -14,7 +14,9 @@ urlpatterns = [
     path('movies/<int:movie_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('movies/<int:movie_id>/review/', views.add_review, name='add_review'),
     path('movies/latest/', views.movie_list, {'filter_type': 'latest'}, name='latest_movies'),
+    path('movies/top-rated/', views.movie_list, {'filter_type': 'top-rated'}, name='top_rated_movies'),
+    path('movies/trending/', views.movie_list, {'filter_type': 'trending'}, name='trending_movies'),
 
     # Favorites
-    path('favorites/', views.favorites_list, name='favorites'),
+    path('movies/favorites/', views.favorites_list, name='favorites'),
 ]

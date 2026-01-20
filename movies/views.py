@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Movie, Favorite, Review, Genre
 from django.core.paginator import Paginator
-from django.db.models import Avg, Prefetch
+from django.db.models import Avg, Prefetch, Q
 
 # ---------------- Home ----------------
 from django.db.models import Count
@@ -38,7 +38,7 @@ def home(request):
     # Latest releases (by release_date)
     latest_movies = Movie.objects.select_related('genre') \
         .exclude(id__in=featured_movies.values_list('id', flat=True)) \
-        .order_by('-release_date')[:5]
+        .order_by('-release_date')[:4]
 
 
     # User favorites
@@ -133,6 +133,14 @@ def register_view(request):
 # ---------------- Movie List ----------------
 def movie_list(request, genre_id=None, filter_type=None):
     movies = Movie.objects.select_related('genre')
+    # 🔍 SEARCH
+    query = request.GET.get('q')
+    if query:
+        movies = movies.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(genre__name__icontains=query)
+        )
     selected_genre = None
 
     # Filter by genre
@@ -189,6 +197,8 @@ def movie_list(request, genre_id=None, filter_type=None):
         'user_fav_ids': user_fav_ids,
         'selected_genre': selected_genre,
         'filter_type': filter_type,
+        'search_query': query,
+
     })
 
 # ---------------- Movie Detail ----------------

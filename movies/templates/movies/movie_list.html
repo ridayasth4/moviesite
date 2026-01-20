@@ -7,10 +7,16 @@
 
 <!-- Page title -->
 <h2 class="text-light mb-4 mt-4">
-{% if selected_genre %}
+{% if search_query %}
+  Search results for "{{ search_query }}"
+{% elif selected_genre %}
   Movies in {{ selected_genre.name }}
+{% elif filter_type == 'top-rated' %}
+  Top Rated Movies
 {% elif filter_type == 'latest' %}
   Latest Releases
+{% elif filter_type == 'trending' %}
+  Trending Movies
 {% else %}
   All Movies
 {% endif %}
@@ -29,13 +35,17 @@
 
 {% else %}
 <p class="text-light">No movies found.</p>
+<a href="{% url 'movie_list' %}" class="text-light mt-2">
+  Click here to see all movies
+</a>
+
 {% endif %}
 
 <!-- -------------------
      Movies by Genre Sections
      Only show if NOT viewing a single genre
 ------------------- -->
-{% if not selected_genre %}
+{% if not selected_genre and not search_query %}
   {% for genre, movies in movies_by_genre.items %}
     <section class="mb-5">
       <div class="d-flex justify-content-between align-items-center mb-3">
