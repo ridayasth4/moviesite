@@ -25,7 +25,7 @@ def home(request):
         featured_movies = Movie.objects.select_related('genre') \
             .order_by('-created_at')[:6]
 
-    # Others / Latest movies
+    # Other / Latest movies
     other_movies = Movie.objects.select_related('genre') \
         .exclude(id__in=featured_movies.values_list('id', flat=True)) \
         .order_by('-created_at')[:4]
@@ -35,40 +35,27 @@ def home(request):
         .annotate(avg_rating_val=Avg('reviews__rating')) \
         .order_by('-avg_rating_val')[:4]
 
-    # Latest releases (by release_date)
+    # Latest releases
     latest_movies = Movie.objects.select_related('genre') \
         .exclude(id__in=featured_movies.values_list('id', flat=True)) \
         .order_by('-release_date')[:4]
 
+    # Genres for badges
+    genres = Genre.objects.filter(movies__isnull=False).distinct()
 
     # User favorites
     user_fav_ids = set(
         request.user.favorites.values_list('movie_id', flat=True)
     ) if request.user.is_authenticated else set()
 
-    # Movies by Genre
-    genres = Genre.objects.filter(movies__isnull=False).distinct().prefetch_related(
-        Prefetch(
-            'movies',
-            queryset=Movie.objects.select_related('genre').order_by('-created_at')
-        )
-    )
-
-    movies_by_genre = {
-        genre: genre.movies.all()[:4]
-        for genre in genres
-    }
-
-    # Combine all movies for stars computation
+    # Stars computation
     all_movies = (
         list(featured_movies)
         + list(other_movies)
         + list(trending_movies)
         + list(latest_movies)
-)
+    )
 
-
-    # Stars computation
     for movie in all_movies:
         avg = getattr(movie, 'avg_rating_val', None) or movie.avg_rating or 0
         movie.avg_rating_value = avg
@@ -83,10 +70,9 @@ def home(request):
         'movies': featured_movies,
         'other_movies': other_movies,
         'trending_movies': trending_movies,
-        'movies_by_genre': movies_by_genre,
-        'user_fav_ids': user_fav_ids,
         'latest_movies': latest_movies,
-
+        'genres': genres,          # ✅ THIS feeds your badges
+        'user_fav_ids': user_fav_ids,
     })
 
 # ---------------- Login ----------------
