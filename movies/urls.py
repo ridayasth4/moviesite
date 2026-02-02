@@ -11,6 +11,7 @@ urlpatterns = [
     path('movies/', views.movie_list, name='movie_list'),  # All movies
     path('movies/genre/<int:genre_id>/', views.movie_list, name='movie_list_by_genre'),  # By genre
     path('movies/<int:pk>/', views.movie_detail, name='movie_detail'),
+    path('movies/<int:pk>/watch/', views.watch_movie, name='watch_movie'),
     path('movies/<int:movie_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('movies/<int:movie_id>/review/', views.add_review, name='add_review'),
     path('movies/latest/', views.movie_list, {'filter_type': 'latest'}, name='latest_movies'),

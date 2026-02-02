@@ -30,6 +30,7 @@
                 
                 <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">Browse</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'trending_movies' %}">Trending</a></li>
                 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle"
        href="#"
@@ -75,7 +76,7 @@
                         </ul>
                     </div>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-danger text-light text-decoration-none me-3 btn-sm">Log in</a>
+                    <a href="{% url 'login' %}" class="btn btn-danger text-light text-decoration-none me-3 btn-sm">Sign in</a>
                     <!-- <a href="{% url 'register' %}" class="btn btn-success px-4 btn-sm">Sign Up</a> -->
                 {% endif %}
             </div>

@@ -28,6 +28,20 @@ class Movie(models.Model):
         blank=True
     )
 
+    # 🎥 VIDEO (NEW)
+    video = models.FileField(
+        upload_to='movies/videos/',
+        blank=True,
+        null=True,
+        help_text="Upload MP4 file (dev / small projects)"
+    )
+
+    video_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="External video URL (CDN / Cloudinary / S3)"
+    )
+
     def __str__(self):
         return self.title
 
@@ -63,6 +77,13 @@ class Movie(models.Model):
     @property
     def is_new(self):
         return self.release_date >= date.today() - timedelta(days=30)
+    
+    def get_video_source(self):
+        if self.video:
+            return 'file'
+        if self.video_url:
+            return 'url'
+        return None
 
 
 class Favorite(models.Model):

@@ -216,7 +216,18 @@ def movie_detail(request, pk):
         'review_stars_range': range(1, 6),
     })
 
+@login_required  # optional: force login to watch
+def watch_movie(request, pk):
+    movie = get_object_or_404(Movie, pk=pk)
 
+    # Check if movie has a playable video
+    if not movie.video and not movie.video_url:
+        return render(request, 'movies/watch_movie.html', {
+            'error': "No video available for this movie.",
+            'movie': movie,
+        })
+
+    return render(request, 'movies/watch_movie.html', {'movie': movie})
 # ---------------- Toggle Favorite ----------------
 @login_required
 def toggle_favorite(request, movie_id):

@@ -101,30 +101,11 @@
   {% endif %}
 </section>
 
-<!-- Trending -->
-<section>
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="text-light fw-bold">Trending</h3>
-    <a href="{% url 'trending_movies' %}" class="btn btn-dark btn-sm">
-      <i class="bi bi-grid me-1"></i>View All
-    </a>
-  </div>
-
-  {% if trending_movies %}
-  <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4 p-3">
-    {% for movie in trending_movies %}
-      {% include 'movies/movie_card.html' with movie=movie delay=forloop.counter0 user_fav_ids=user_fav_ids %}
-    {% endfor %}
-  </div>
-  {% else %}
-    <p class="text-secondary">No trending movies right now.</p>
-  {% endif %}
-</section>
 
 <!-- Latest Upload / All movies -->
 <section>
   <div class="d-flex justify-content-between align-items-center">
-    <h3 class="text-light fw-bold">All movies</h3>
+    <h3 class="text-light fw-bold">Explore movies</h3>
     <a href="{% url 'movie_list' %}" class="btn btn-dark btn-sm"><i class="bi bi-grid me-1"></i>View All</a>
   </div>
 
