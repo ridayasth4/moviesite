@@ -1,24 +1,19 @@
-{% extends 'movies/base.html' %}
-
-{% block title %}Watch {{ movie.title }} | CinemaFlix{% endblock %}
-
-{% block content %}
+{% extends 'movies/base.html' %} {% block title %}Watch {{ movie.title }} |
+CinemaFlix{% endblock %} {% block content %}
 <div class="container py-4">
-
-    <h2 class="text-light mb-3">{{ movie.title }}</h2>
-
-    {% if error %}
-        <div class="alert alert-warning">{{ error }}</div>
-    {% else %}
-        {% if movie.video %}
-            <video controls autoplay width="100%" style="max-height:600px;">
-                <source src="{{ movie.video.url }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        {% elif movie.video_url %}
-            <iframe src="{{ movie.video_url }}" width="100%" height="500" frameborder="0" allowfullscreen></iframe>
-        {% endif %}
-    {% endif %}
-
+  <h2 class="text-light mb-3">{{ movie.title }}</h2>
+  {% if error %}
+  <div class="alert alert-warning">{{ error }}</div>
+  {% else %}{% if movie.video %}
+  <video controls autoplay width="100%">
+    <source src="{{ movie.video.url }}" type="video/mp4" />
+  </video>
+  {% elif movie.video_url %}
+  <video controls width="100%" >
+    <source src="{{ movie.video_url }}" type="video/mp4" />
+  </video>
+  {% else %}
+  <div class="alert alert-warning">No video available</div>
+  {% endif %} {% endif %}
 </div>
 {% endblock %}

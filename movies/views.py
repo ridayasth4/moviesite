@@ -83,7 +83,8 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            return redirect('home')
+            next_url = request.GET.get('next')
+            return redirect(next_url or 'home')
         messages.error(request, "Invalid username or password")
     return render(request, 'movies/login.html')
 
@@ -202,7 +203,7 @@ def movie_detail(request, pk):
         'review_stars_range': range(1, 6),
     })
 
-@login_required  # optional: force login to watch
+@login_required(login_url='login')
 def watch_movie(request, pk):
     movie = get_object_or_404(Movie, pk=pk)
 
