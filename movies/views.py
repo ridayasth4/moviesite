@@ -8,14 +8,6 @@ from django.core.paginator import Paginator
 from django.db.models import Avg, Prefetch, Q
 
 # ---------------- Home ----------------
-from django.db.models import Count
-
-from django.db.models import Avg
-
-from django.shortcuts import render
-from django.db.models import Avg, Prefetch
-from .models import Movie, Genre
-
 def home(request):
     # Featured movies
     featured_movies = Movie.objects.select_related('genre') \
@@ -218,10 +210,17 @@ def watch_movie(request, pk):
 # ---------------- Toggle Favorite ----------------
 @login_required
 def toggle_favorite(request, movie_id):
+    if request.method != 'POST':
+        return redirect('home')
+
     movie = get_object_or_404(Movie, id=movie_id)
-    favorite, created = Favorite.objects.get_or_create(user=request.user, movie=movie)
+    favorite, created = Favorite.objects.get_or_create(
+        user=request.user,
+        movie=movie
+    )
     if not created:
         favorite.delete()
+
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 
@@ -229,14 +228,22 @@ def toggle_favorite(request, movie_id):
 @login_required
 def add_review(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
+
     if request.method == 'POST':
-        rating = int(request.POST.get('rating'))
-        comment = request.POST.get('comment')
+        try:
+            rating = int(request.POST.get('rating'))
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid rating")
+            return redirect('movie_detail', pk=movie.id)
+
+        comment = request.POST.get('comment', '').strip()
+
         Review.objects.update_or_create(
             movie=movie,
             user=request.user,
             defaults={'rating': rating, 'comment': comment}
         )
+
     return redirect('movie_detail', pk=movie.id)
 
 

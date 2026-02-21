@@ -1,17 +1,6 @@
 from django.urls import path
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-from .views import (
-    home_api,
-    movie_list_api,
-    movie_detail_api,
-    register_api,
-    toggle_favorite_api,
-    user_favorites_api,
-    add_review_api,
-)
+from rest_framework_simplejwt.views import (TokenObtainPairView,TokenRefreshView)
+from .views import (home_api,movie_list_api,movie_detail_api,register_api,toggle_favorite_api,user_favorites_api,add_review_api,)
 
 urlpatterns = [
     # Home / Movies
