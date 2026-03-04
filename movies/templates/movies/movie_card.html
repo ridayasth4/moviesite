@@ -1,8 +1,8 @@
-<div class="col-6 col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="{{ delay|default:0 }}">
+<div class="col-6" data-aos="fade-up" data-aos-delay="{{ delay|default:0 }}">
   <div class="movie-card-flip" onclick="this.classList.toggle('active')">
     
     <div class="card-side front shadow-lg">
-      <div class="card bg-black border-0 h-100 overflow-hidden">
+      <div class="card bg-dark border-0 h-100 overflow-hidden">
         <div class="poster-container">
           {% if movie.poster %}
             <img src="{{ movie.poster.url }}" class="w-100 h-100 object-fit-cover main-poster" alt="{{ movie.title }}">
@@ -18,7 +18,7 @@
           </div>
 
           {% if movie.is_new %}
-            <div class="glass-badge top-left bg-danger border-0">NEW</div>
+            <div class="glass-badge badge top-left bg-danger border-0">NEW</div>
           {% endif %}
 
           <div class="title-gradient-overlay">
@@ -34,15 +34,15 @@
     <div class="card-side back shadow-lg">
       <div class="card-inner-back h-100 p-3 d-flex flex-column">
         <div class="d-flex align-items-start justify-content-between mb-3">
-          <h6 class="text-white fw-bold m-0 text-truncate" style="max-width: 70%;">{{ movie.title }}</h6>
+          <h6 class="text-white fw-bold text-truncate" style="max-width: 70%;">{{ movie.title }}</h6>
         </div>
 
-        <div class="stats-box mb-3">
+        <div class="stats-box mb-2">
           <div class="d-flex justify-content-between small mb-1">
             <span class="text-white-50">Score</span>
             <span class="text-warning fw-bold">{% widthratio movie.avg_rating_value 10 5 %}.0 / 5</span>
           </div>
-          <div class="progress bg-black rounded-pill" style="height: 5px;">
+          <div class="progress bg-black rounded-pill" style="height: 3px;">
             <div class="progress-bar bg-gradient-danger" style="width: calc(({{ movie.avg_rating_value|default:0 }} / 10) * 100%)"></div>
           </div>
         </div>
@@ -56,7 +56,7 @@
           </div>
           <div class="col-6">
             <div class="info-card">
-              <i class="bi bi-calendar-event text-danger"></i>
+              <i class="bi bi-calendar-event text-primary"></i>
               <span>{{ movie.release_date|date:"Y" }}</span>
             </div>
           </div>
@@ -64,11 +64,11 @@
 
         <div class="mt-auto d-grid gap-2">
           <a href="{% url 'watch_movie' movie.pk %}" class="btn btn-danger btn-sm rounded-pill py-2 shadow-sm">
-            <i class="bi bi-play-fill me-1"></i> WATCH NOW
+            <i class="bi bi-play-fill me-1"></i>WATCH NOW
           </a>
           <div class="d-flex gap-2">
             <a href="{% url 'movie_detail' movie.pk %}" class="btn btn-glass-white btn-sm rounded-pill flex-grow-1">Details</a>
-            <!-- <button class="btn btn-glass-white btn-sm rounded-pill"><i class="bi bi-share"></i></button> -->
+            <button class="btn btn-glass-white btn-sm rounded-pill"><i class="bi bi-share"></i></button>
             {% if user.is_authenticated %}
             <form action="{% url 'toggle_favorite' movie.id %}" method="post">
               {% csrf_token %}
@@ -79,6 +79,7 @@
           {% endif %}
           </div>
         </div>
+        
       </div>
     </div>
     
@@ -145,13 +146,13 @@
 .glass-badge {
   position: absolute;
   padding: 4px 8px;
-  border-radius: 20px;
-  font-size: 0.60rem;
+  border-radius: 10px;
+  font-size: 0.70rem;
   font-weight: bold;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   background: rgba(0, 0, 0, 0.1);
-  /* border: 1px solid rgba(255, 255, 255, 0.1); */
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
   z-index: 5;
 }

@@ -17,14 +17,10 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top py-3">
     <div class="container-fluid px-4">
-        <a class="navbar-brand fw-bold fs-5 d-flex align-items-center"
-   href="{% url 'home' %}">
-    <img src="{% static 'images/logo.png' %}"
-         alt="CinemaFlix"
-         class="me-1"
-         height="40">
-    <span class="text-danger">CINEMA</span><span class="text-light">FLIX</span>
-</a>
+        <a class="navbar-brand fw-bold fs-5 d-flex align-items-center" href="{% url 'home' %}">
+            <img src="{% static 'images/logo.png' %}" alt="CinemaFlix" class="me-1" height="40">
+            <span class="text-danger">CINEMA</span><span class="text-light">FLIX</span>
+        </a>
 
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -33,10 +29,11 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto bg-black bg-opacity-50 rounded-pill px-3 py-1 border border-secondary border-opacity-25 small">
-                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"  href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"  href="{% url 'home' %}"><i class="bi bi-house me-1"></i>Home</a></li>
                 <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'movie_list' %}active{% endif %}" href="{% url 'movie_list' %}">Browse</a></li>
-                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'trending_movies' %}active{% endif %}" href="{% url 'trending_movies' %}">Trending</a></li>
-                <li class="nav-item dropdown"><a class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'movie_list_by_genre' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Genres</a>
+                <!-- <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'trending_movies' %}active{% endif %}" href="{% url 'trending_movies' %}">Trending</a></li> -->
+                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'top_rated_movies' %}active{% endif %}" href="{% url 'top_rated_movies' %}">Top Rated</a></li>
+                <!-- <li class="nav-item dropdown"><a class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'movie_list_by_genre' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Genres</a>
                     <ul class="dropdown-menu dropdown-menu-dark shadow mt-2 rounded-4">
                         {% for genre in navbar_genres %}
                         <li>
@@ -46,10 +43,10 @@
                         </li>
                         {% endfor %}
                     </ul>
-                </li>
+                </li> -->
 
                 {% if user.is_authenticated %}
-                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'favorites' %}active{% endif %}" href="{% url 'favorites' %}">Favourites</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'favorites' %}active{% endif %}" href="{% url 'favorites' %}">My Favourites</a></li>
                 {% endif %}
                 <li class="nav-item ms-lg-3">
                     <form method="get" action="{% url 'movie_list' %}" class="search-pill d-flex align-items-center mt-2">
@@ -82,12 +79,12 @@
 
 <main class="flex-grow-1 mt-5 pt-4">
     {% block hero %}{% endblock %}
-    <div class="container-fluid px-4">
+    <div class="container-fluid px-3">
         {% block content %}{% endblock %}
     </div>
 </main>
 
-<footer class="bg-black text-secondary py-5 mt-5 border-top border-danger border-2">
+<footer class="bg-black text-secondary py-5 mt-5 border-top border-danger border-1">
     <div class="container">
         <div class="row">
             <div class="col-md-6">
