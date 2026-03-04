@@ -18,3 +18,13 @@ body { font-family: 'Poppins', sans-serif; }
         .page-item:not(.disabled) .page-link {
     cursor: pointer;
 }
+@media (max-width: 991.98px) {  /* Bootstrap lg breakpoint */
+    .navbar-nav {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        justify-content: center;
+        align-items: center;
+    }
+}

@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Movie, Favorite, Review, Genre
 from django.core.paginator import Paginator
-from django.db.models import Avg, Prefetch, Q
+from django.db.models import Avg, Prefetch, Q, Value
+from django.db.models.functions import Coalesce
 
 # ---------------- Home ----------------
 def home(request):
@@ -17,15 +18,15 @@ def home(request):
         featured_movies = Movie.objects.select_related('genre') \
             .order_by('-created_at')[:6]
 
-    # Other / Latest movies
+    # Explore movies
     other_movies = Movie.objects.select_related('genre') \
         .exclude(id__in=featured_movies.values_list('id', flat=True)) \
         .order_by('-created_at')[:4]
 
-    # Trending movies
+    # Top Rated movies
     trending_movies = Movie.objects.select_related('genre') \
-        .annotate(avg_rating_val=Avg('reviews__rating')) \
-        .order_by('-avg_rating_val')[:4]
+        .annotate(avg_rating_val=Coalesce(Avg('reviews__rating'), Value(0.0))) \
+        .order_by('-avg_rating_val')[:5]
 
     # Latest releases
     latest_movies = Movie.objects.select_related('genre') \
@@ -63,7 +64,7 @@ def home(request):
         'other_movies': other_movies,
         'trending_movies': trending_movies,
         'latest_movies': latest_movies,
-        'genres': genres,          # ✅ THIS feeds your badges
+        'genres': genres,         
         'user_fav_ids': user_fav_ids,
     })
 
@@ -80,12 +81,10 @@ def login_view(request):
         messages.error(request, "Invalid username or password")
     return render(request, 'movies/login.html')
 
-
 # ---------------- Logout ----------------
 def logout_view(request):
     logout(request)
     return redirect('home')
-
 
 # ---------------- Register ----------------
 def register_view(request):
@@ -108,7 +107,6 @@ def register_view(request):
 
     return render(request, 'movies/register.html')
 
-
 # ---------------- Movie List ----------------
 def movie_list(request, genre_id=None, filter_type=None):
     movies = Movie.objects.select_related('genre')
@@ -129,10 +127,15 @@ def movie_list(request, genre_id=None, filter_type=None):
 
     # Filter by Top Rated / Trending
     if filter_type == 'top-rated':
-        movies = movies.annotate(avg_rating_val=Avg('reviews__rating')).order_by('-avg_rating_val')
+        movies = movies.annotate(
+            avg_rating_val=Coalesce(Avg('reviews__rating'), Value(0.0))
+        ).order_by('-avg_rating_val', '-release_date')
+
     elif filter_type == 'trending':
-        # Trending could be latest + top rated combination or based on views
-        movies = movies.annotate(avg_rating_val=Avg('reviews__rating')).order_by('-avg_rating_val', '-created_at')
+        movies = movies.annotate(
+            avg_rating_val=Coalesce(Avg('reviews__rating'), Value(0.0))
+        ).order_by('-avg_rating_val', '-created_at')
+
     elif filter_type == 'latest' or (not genre_id and not filter_type):
         movies = movies.order_by('-release_date')
 
@@ -223,7 +226,6 @@ def toggle_favorite(request, movie_id):
 
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
-
 # ---------------- Add Review ----------------
 @login_required
 def add_review(request, movie_id):
@@ -245,7 +247,6 @@ def add_review(request, movie_id):
         )
 
     return redirect('movie_detail', pk=movie.id)
-
 
 # ---------------- Favorites List ----------------
 @login_required

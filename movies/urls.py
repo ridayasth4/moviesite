@@ -6,7 +6,6 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
-
     # Movies
     path('movies/', views.movie_list, name='movie_list'),  # All movies
     path('movies/genre/<int:genre_id>/', views.movie_list, name='movie_list_by_genre'),  # By genre
@@ -17,7 +16,6 @@ urlpatterns = [
     path('movies/latest/', views.movie_list, {'filter_type': 'latest'}, name='latest_movies'),
     path('movies/top-rated/', views.movie_list, {'filter_type': 'top-rated'}, name='top_rated_movies'),
     path('movies/trending/', views.movie_list, {'filter_type': 'trending'}, name='trending_movies'),
-
     # Favorites
     path('movies/favorites/', views.favorites_list, name='favorites'),
 ]

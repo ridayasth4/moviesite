@@ -18,33 +18,21 @@
 {% elif filter_type == 'trending' %}
   Trending Movies
 {% else %}
-  All Movies
 {% endif %}
 </h2>
 
-<!-- -------------------
-     All Movies Section (Paginated)
-------------------- -->
-{% if page_obj %}
-<div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-4">
-  {% for movie in page_obj %}
-    {% include 'movies/movie_card.html' with movie=movie delay=forloop.counter0 user_fav_ids=user_fav_ids %}
-  {% endfor %}
-</div>
-
-
-{% else %}
-<p class="text-light">No movies found.</p>
-<a href="{% url 'movie_list' %}" class="text-light mt-2">
-  Click here to see all movies
-</a>
-
+<!-- -------------------All Movies Section ------------------- -->
+{% if selected_genre or filter_type or search_query %}
+  <section class="mb-5">
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-4">
+      {% for movie in page_obj %}
+        {% include 'movies/movie_card.html' with movie=movie delay=forloop.counter0 user_fav_ids=user_fav_ids %}
+      {% endfor %}
+    </div>
+  </section>
 {% endif %}
 
-<!-- -------------------
-     Movies by Genre Sections
-     Only show if NOT viewing a single genre
-------------------- -->
+<!-- -------------------Movies by Genre Sections ------------------- -->
 {% if not selected_genre and not search_query %}
   {% for genre, movies in movies_by_genre.items %}
     <section class="mb-5">
