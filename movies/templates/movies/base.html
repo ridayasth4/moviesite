@@ -33,33 +33,23 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto bg-black bg-opacity-50 rounded-pill px-3 py-1 border border-secondary border-opacity-25 small">
-                
-                <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'movie_list' %}">Browse</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'trending_movies' %}">Trending</a></li>
-                <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle"
-       href="#"
-       role="button"
-       data-bs-toggle="dropdown"
-       aria-expanded="false">
-        </i>Genres
-    </a>
-
-    <ul class="dropdown-menu dropdown-menu-dark shadow mt-2 rounded-4">
-        {% for genre in navbar_genres %}
-            <li>
-                <a class="dropdown-item d-flex justify-content-center small"
-                   href="{% url 'movie_list_by_genre' genre.id %}">
-                    {{ genre.name }}
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-</li>
+                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"  href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'movie_list' %}active{% endif %}" href="{% url 'movie_list' %}">Browse</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'trending_movies' %}active{% endif %}" href="{% url 'trending_movies' %}">Trending</a></li>
+                <li class="nav-item dropdown"><a class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'movie_list_by_genre' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Genres</a>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow mt-2 rounded-4">
+                        {% for genre in navbar_genres %}
+                        <li>
+                            <a class="dropdown-item d-flex justify-content-center small" href="{% url 'movie_list_by_genre' genre.id %}">
+                                {{ genre.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
 
                 {% if user.is_authenticated %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'favorites' %}">Favourites</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'favorites' %}active{% endif %}" href="{% url 'favorites' %}">Favourites</a></li>
                 {% endif %}
                 <li class="nav-item ms-lg-3">
                     <form method="get" action="{% url 'movie_list' %}" class="search-pill d-flex align-items-center mt-2">
