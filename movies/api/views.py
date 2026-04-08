@@ -1,31 +1,31 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 from django.db.models import Avg, Q
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticated
-from movies.models import Movie, Review
+
+from movies.models import Movie, Review, Favorite, Genre
 from .serializers import (
     MovieListSerializer,
     MovieDetailSerializer,
     ReviewSerializer
 )
 
+
 # ---------------- Home API ----------------
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def home_api(request):
-    featured = Movie.objects.filter(featured=True) \
-        .annotate(avg_rating_val=Avg('reviews__rating'))[:6]
-
-    latest = Movie.objects.order_by('-release_date') \
-        .annotate(avg_rating_val=Avg('reviews__rating'))[:4]
-
-    trending = Movie.objects.annotate(
+    # Added select_related('genre') to save database hits
+    base_queryset = Movie.objects.select_related('genre').annotate(
         avg_rating_val=Avg('reviews__rating')
-    ).order_by('-avg_rating_val')[:4]
+    )
+
+    featured = base_queryset.filter(featured=True).order_by('-created_at')[:6]
+    latest = base_queryset.order_by('-release_date')[:4]
+    trending = base_queryset.order_by('-avg_rating_val')[:4]
 
     return Response({
         "featured": MovieListSerializer(featured, many=True).data,
@@ -38,7 +38,10 @@ def home_api(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def movie_list_api(request):
-    movies = Movie.objects.annotate(avg_rating_val=Avg('reviews__rating'))
+    # Added select_related and ordering
+    movies = Movie.objects.select_related('genre').annotate(
+        avg_rating_val=Avg('reviews__rating')
+    ).order_by('-release_date')
 
     q = request.GET.get('q')
     if q:
@@ -59,69 +62,77 @@ def movie_list_api(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def movie_detail_api(request, pk):
-    movie = Movie.objects.annotate(
-        avg_rating_val=Avg('reviews__rating')
-    ).get(pk=pk)
+    # Use get_object_or_404 to avoid 500 errors
+    movie = get_object_or_404(
+        Movie.objects.select_related('genre').annotate(
+            avg_rating_val=Avg('reviews__rating')
+        ),
+        pk=pk
+    )
 
-    reviews = movie.reviews.all()
+    reviews = movie.reviews.all().select_related('user')
 
     return Response({
         "movie": MovieDetailSerializer(movie).data,
         "reviews": ReviewSerializer(reviews, many=True).data
     })
 
+
+# ---------------- Auth & Actions ----------------
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_api(request):
-    username = request.data.get('username')
-    email = request.data.get('email')
-    password = request.data.get('password')
-    confirm_password = request.data.get('confirm_password')
+    data = request.data
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    confirm = data.get('confirm_password')
 
-    if password != confirm_password:
+    if password != confirm:
         return Response({"error": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(username=username).exists():
-        return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(email=email).exists():
-        return Response({"error": "Email already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.create_user(username=username, email=email, password=password)
+    if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
+        return Response({"error": "Username or Email already taken"}, status=status.HTTP_400_BAD_REQUEST)
+
+    User.objects.create_user(username=username, email=email, password=password)
     return Response({"message": "Account created successfully"}, status=status.HTTP_201_CREATED)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def toggle_favorite_api(request, movie_id):
-    from movies.models import Movie, Favorite
-
     movie = get_object_or_404(Movie, id=movie_id)
     favorite, created = Favorite.objects.get_or_create(user=request.user, movie=movie)
+
     if not created:
         favorite.delete()
-        return Response({"status": "removed"})
-    return Response({"status": "added"})
+        return Response({"status": "removed", "is_favorite": False})
+    return Response({"status": "added", "is_favorite": True})
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_favorites_api(request):
-    fav_movies = Movie.objects.filter(favorited_by__user=request.user)
-    from .serializers import MovieListSerializer
+    fav_movies = Movie.objects.filter(favorited_by__user=request.user).select_related('genre')
     return Response(MovieListSerializer(fav_movies, many=True).data)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_review_api(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
+    try:
+        rating = int(request.data.get('rating', 0))
+    except ValueError:
+        return Response({"error": "Rating must be a number"}, status=status.HTTP_400_BAD_REQUEST)
 
-    rating = int(request.data.get('rating', 0))
-    comment = request.data.get('comment', '')
-
-    if rating < 1 or rating > 5:
-        return Response({"error": "Rating must be 1-5"}, status=status.HTTP_400_BAD_REQUEST)
+    if not (1 <= rating <= 5):
+        return Response({"error": "Rating must be between 1 and 5"}, status=status.HTTP_400_BAD_REQUEST)
 
     review, created = Review.objects.update_or_create(
         movie=movie,
         user=request.user,
-        defaults={'rating': rating, 'comment': comment}
+        defaults={'rating': rating, 'comment': request.data.get('comment', '')}
     )
-    from .serializers import ReviewSerializer
     return Response(ReviewSerializer(review).data)
